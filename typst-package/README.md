@@ -4,7 +4,7 @@ Quickjs javascript runtime for typst. This package provides a typst plugin for e
 
 ## Example
 
-```typst
+````typst
 #import "@preview/jogs:0.1.0": *
 
 #show raw.where(lang: "jogs"): it => eval-js(it)
@@ -20,7 +20,28 @@ for (let i = 0; i < 10; i++) {
 }
 res
 ```
+```````
 
 result: 
 
 ![](typst-package/examples/fib.svg)
+
+## Documentation
+
+This package provide following function(s):
+
+### `eval-js`
+
+Run a Javascript code snippet.
+
+#### Arguments
+* `code` - The Javascript code to run. It can be a string or a raw block.
+
+#### Returns
+The result of the Javascript code in string
+
+#### Example
+
+```typ
+let result = eval-js("1 + 1")
+```
