@@ -12,4 +12,8 @@
 /// ```typ
 /// let result = eval-js("1 + 1")
 /// ```
-#let eval-js(code) = str(jogs-wasm.eval(bytes(code)))
+#let eval-js(code) = if type(code) == "string" {
+  str(jogs-wasm.eval(bytes(code)))
+} else {
+  str(jogs-wasm.eval(bytes(code.text)))
+}

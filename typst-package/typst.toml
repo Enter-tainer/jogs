@@ -16,3 +16,6 @@ keywords = [
     "quickjs",
     "runtime",
 ]
+exclude = [
+  "examples"
+]
