@@ -4,7 +4,7 @@ use wasm_minimal_protocol::*;
 initiate_protocol!();
 
 #[wasm_func]
-fn main(input: &[u8]) -> Result<Vec<u8>, String> {
+fn eval(input: &[u8]) -> Result<Vec<u8>, String> {
     let context = JSContextRef::default();
     let Ok(input) = std::str::from_utf8(input) else {
         return Err("input is not utf8".to_string());
