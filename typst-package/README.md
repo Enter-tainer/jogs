@@ -5,9 +5,10 @@ Quickjs javascript runtime for typst. This package provides a typst plugin for e
 ## Example
 
 ````typst
+#import "@preview/jogs:0.1.0": *
+
 #set page(height: auto, width: auto, fill: black)
 #set text(fill: white)
-#import "../lib.typ": *
 
 #show raw.where(lang: "jogs"): it => eval-js(it)
 
@@ -43,10 +44,10 @@ Run a Javascript code snippet.
 * `code` - The Javascript code to run. It can be a string or a raw block.
 
 #### Returns
-The result of the Javascript code in string
+The result of the Javascript code. The type is the typst type which most closely resembles the Javascript type.
 
 #### Example
 
 ```typ
-let result = eval-js("1 + 1")
+#let result = eval-js("1 + 1")
 ```
