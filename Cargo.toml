@@ -8,6 +8,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 [dependencies]
 quickjs-wasm-rs = "2.0.1"
+serde_cbor = "0.11.2"
 wasm-minimal-protocol = { git = "https://github.com/astrale-sharp/wasm-minimal-protocol" }
 
 [profile.release]
