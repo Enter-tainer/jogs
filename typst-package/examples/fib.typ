@@ -1,4 +1,4 @@
-#set page(height: auto, width: auto, fill: black)
+#set page(height: auto, width: auto, fill: black, margin: 1em)
 #set text(fill: white)
 #import "../lib.typ": *
 
