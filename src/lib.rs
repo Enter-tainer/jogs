@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use quickjs_wasm_rs::{from_qjs_value, JSContextRef, JSValue};
+use quickjs_wasm_rs::{from_qjs_value, to_qjs_value, JSContextRef, JSValue, JSValueRef};
 use serde::{Deserialize, Serialize};
 
 use wasm_minimal_protocol::*;
@@ -48,22 +48,104 @@ impl From<JSValue> for MyJSValue {
     }
 }
 
+impl From<MyJSValue> for JSValue {
+    fn from(value: MyJSValue) -> Self {
+        match value {
+            MyJSValue::Undefined => JSValue::Undefined,
+            MyJSValue::Null => JSValue::Null,
+            MyJSValue::Bool(b) => JSValue::Bool(b),
+            MyJSValue::Int(i) => JSValue::Int(i),
+            MyJSValue::Float(f) => JSValue::Float(f),
+            MyJSValue::String(s) => JSValue::String(s),
+            MyJSValue::Array(arr) => JSValue::Array(arr.into_iter().map(|v| v.into()).collect()),
+            MyJSValue::ArrayBuffer(buf) => JSValue::ArrayBuffer(buf),
+            MyJSValue::Object(obj) => {
+                JSValue::Object(obj.into_iter().map(|(k, v)| (k, v.into())).collect())
+            }
+        }
+    }
+}
+
 #[wasm_func]
 fn eval(input: &[u8]) -> Result<Vec<u8>, String> {
+    let context = JSContextRef::default();
+    let input = std::str::from_utf8(input).map_err(|e| e.to_string())?;
+    let res = from_qjs_value(
+        context
+            .eval_global("<evalScript>", input)
+            .map_err(|e| e.to_string())?,
+    )
+    .map_err(|e| e.to_string())?;
+    let res = MyJSValue::from(res);
+    let mut buffer = vec![];
+    ciborium::ser::into_writer(&res, &mut buffer).map_err(|e| e.to_string())?;
+    Ok(buffer)
+}
+
+#[wasm_func]
+fn compile(input: &[u8]) -> Result<Vec<u8>, String> {
     let context = JSContextRef::default();
     let Ok(input) = std::str::from_utf8(input) else {
         return Err("input is not utf8".to_string());
     };
-    let res = match context.eval_global("<evalScript>", input) {
-        Ok(res) => match from_qjs_value(res) {
-            Ok(res) => res,
-            Err(err) => return Err(err.to_string()),
-        },
-        Err(err) => return Err(err.to_string()),
-    };
-    let res = MyJSValue::from(res);
-    match serde_cbor::to_vec(&res) {
-        Ok(res) => Ok(res),
-        Err(err) => Err(err.to_string()),
+    context
+        .compile_global("<compiledScript>", input)
+        .map_err(|e| e.to_string())
+}
+
+#[wasm_func]
+fn list_property_keys(input: &[u8]) -> Result<Vec<u8>, String> {
+    let context = JSContextRef::default();
+    context.eval_binary(input).map_err(|e| e.to_string())?;
+    let mut props = context
+        .global_object()
+        .map_err(|e| e.to_string())?
+        .properties()
+        .map_err(|e| e.to_string())?;
+    let mut keys: Vec<MyJSValue> = vec![];
+    while let Some(key) = props.next_key().map_err(|e| e.to_string())? {
+        keys.push(from_qjs_value(key).map_err(|e| e.to_string())?.into());
     }
+    let mut buffer = vec![];
+    ciborium::ser::into_writer(&keys, &mut buffer).map_err(|e| e.to_string())?;
+    Ok(buffer)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct CallFunction {
+    #[serde(with = "serde_bytes")]
+    bytecode: Vec<u8>,
+    function_name: String,
+    arguments: Vec<MyJSValue>,
+}
+
+#[wasm_func]
+fn call_function(input: &[u8]) -> Result<Vec<u8>, String> {
+    let context = JSContextRef::default();
+    let CallFunction {
+        bytecode,
+        function_name,
+        arguments,
+    } = ciborium::from_reader(input).map_err(|e| e.to_string())?;
+    // return Err("not implemented".to_string());
+    let arguments: Vec<JSValueRef> = arguments
+        .into_iter()
+        .map(|v| {
+            let v: JSValue = v.into();
+            to_qjs_value(&context, &v).map_err(|e| e.to_string())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    context.eval_binary(&bytecode).map_err(|e| e.to_string())?;
+    let global_this = context.global_object().map_err(|e| e.to_string())?;
+    let function = global_this
+        .get_property(function_name)
+        .map_err(|e| e.to_string())?;
+    let res = function
+        .call(&global_this, &arguments)
+        .map_err(|e| e.to_string())?;
+    let res = from_qjs_value(res).map_err(|e| e.to_string())?;
+    let res = MyJSValue::from(res);
+    let mut buffer = vec![];
+    ciborium::ser::into_writer(&res, &mut buffer).map_err(|e| e.to_string())?;
+    Ok(buffer)
 }

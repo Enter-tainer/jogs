@@ -2,18 +2,36 @@
 #set text(fill: white)
 #import "../lib.typ": *
 
-#show raw.where(lang: "jogs"): it => eval-js(it)
+#let code = ```
+function sum() {
+  const total = Array.prototype.slice.call(arguments).reduce(function(a, b) {
+      return a + b;
+  }, 0);
+  return total;
+}
 
-```jogs
-let a = {a: 0, c: 1, b: "123"}
-let res = []
-function fib(n) {
-  if (n < 2) return n
-  return fib(n - 1) + fib(n - 2)
+function string_join(arr) {
+  return arr.join(" | ");
 }
-for (let i = 0; i < 10; i++) {
-  res.push(fib(i))
+
+function return_complex_obj() {
+  return {
+    a: 1,
+    b: "2",
+    c: [1, 2, 3],
+    d: {
+      e: 1,
+    },
+  };
 }
-a.d = res
-a
+
 ```
+#let bytecode = compile-js(code)
+
+#list-global-property(bytecode)
+
+#call-js-function(bytecode, "sum", 6, 7, 8, 9, 10)
+
+#call-js-function(bytecode, "string_join", ("a", "b", "c", "d", "e"),)
+
+#call-js-function(bytecode, "return_complex_obj",)
