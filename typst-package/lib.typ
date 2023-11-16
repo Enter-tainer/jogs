@@ -26,8 +26,10 @@
 
 #let list-global-property(bytecode) = cbor.decode(jogs-wasm.list_property_keys(bytecode))
 
-#let call-js-function(bytecode, function-name, ..args) = cbor.decode(jogs-wasm.call_function(cbor.encode((
-  bytecode: bytecode,
-  function_name: function-name,
-  arguments: args.pos(),
-))))
+#let call-js-function(bytecode, function-name, ..args) = cbor.decode(
+  jogs-wasm.call_function(
+    bytecode,
+    bytes(function-name),
+    cbor.encode(args.pos()),
+  )
+)

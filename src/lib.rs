@@ -116,37 +116,33 @@ fn list_property_keys(input: &[u8]) -> Result<Vec<u8>> {
     Ok(buffer)
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct CallFunction {
-    #[serde(with = "serde_bytes")]
-    bytecode: Vec<u8>,
-    function_name: String,
-    arguments: Vec<MyJSValue>,
-}
-
 #[wasm_func]
-fn call_function(input: &[u8]) -> Result<Vec<u8>> {
+fn call_function(bytecode: &[u8], function_name: &[u8], args: &[u8]) -> Result<Vec<u8>> {
     let context = JSContextRef::default();
-    let CallFunction {
-        bytecode,
-        function_name,
-        arguments,
-    } = ciborium::from_reader(input)?;
-    // return Err("not implemented".to_string());
+    let function_name = std::str::from_utf8(function_name).context("function name is not utf8")?;
+    let arguments: Vec<MyJSValue> =
+        ciborium::from_reader(args).context("failed to deserialize arguments")?;
     let arguments: Vec<JSValueRef> = arguments
         .into_iter()
         .map(|v| {
             let v: JSValue = v.into();
             to_qjs_value(&context, &v)
         })
-        .collect::<Result<Vec<_>, _>>()?;
-    context.eval_binary(&bytecode)?;
-    let global_this = context.global_object()?;
-    let function = global_this.get_property(function_name)?;
-    let res = function.call(&global_this, &arguments)?;
-    let res = from_qjs_value(res)?;
+        .collect::<Result<Vec<_>, _>>()
+        .context("failed to convert arguments to JSValueRef")?;
+    context.eval_binary(bytecode)?;
+    let global_this = context
+        .global_object()
+        .context("failed to get global object")?;
+    let function = global_this
+        .get_property(function_name)
+        .with_context(|| format!("failed to get function: {}", function_name))?;
+    let res = function
+        .call(&global_this, &arguments)
+        .context("failed to call function")?;
+    let res = from_qjs_value(res).context("failed to convert result to MyJSValue")?;
     let res = MyJSValue::from(res);
     let mut buffer = vec![];
-    ciborium::ser::into_writer(&res, &mut buffer)?;
+    ciborium::ser::into_writer(&res, &mut buffer).context("failed to serialize result")?;
     Ok(buffer)
 }
