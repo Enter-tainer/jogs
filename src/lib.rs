@@ -70,12 +70,7 @@ impl From<MyJSValue> for JSValue {
 fn eval(input: &[u8]) -> Result<Vec<u8>> {
     let context = JSContextRef::default();
     let input = std::str::from_utf8(input).context("failed to parse input as utf8")?;
-    let res = from_qjs_value(
-        context
-            .eval_global("<evalScript>", input)
-            .context("failed to convert result to MyJSValue")?,
-    )
-    .context("failed to convert result to MyJSValue")?;
+    let res = from_qjs_value(context.eval_global("<evalScript>", input)?)?;
     let res = MyJSValue::from(res);
     let mut buffer = vec![];
     ciborium::ser::into_writer(&res, &mut buffer).context("failed to serialize result")?;
@@ -137,9 +132,7 @@ fn call_function(bytecode: &[u8], function_name: &[u8], args: &[u8]) -> Result<V
     let function = global_this
         .get_property(function_name)
         .with_context(|| format!("failed to get function: {}", function_name))?;
-    let res = function
-        .call(&global_this, &arguments)
-        .context("failed to call function")?;
+    let res = function.call(&global_this, &arguments)?;
     let res = from_qjs_value(res).context("failed to convert result to MyJSValue")?;
     let res = MyJSValue::from(res);
     let mut buffer = vec![];
