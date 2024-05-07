@@ -1,5 +1,13 @@
 #!/bin/bash
 set -euxo pipefail
+# Download the wasm-minimal-protocol repo and build wasi-stub tool from source.
+(
+git clone https://github.com/astrale-sharp/wasm-minimal-protocol/ --depth=1
+cd wasm-minimal-protocol/wasi-stub
+cargo build
+cp ../target/debug/wasi-stub ../..
+# rm -rf wasm-minimal-protocol
+)
 cargo build --release --target wasm32-wasi
 cargo about generate about.hbs > license.html
 cp license.html typst-package/
