@@ -12,13 +12,13 @@
 /// ```typ
 /// let result = eval-js("1 + 1")
 /// ```
-#let eval-js(code) = if type(code) == "string" {
+#let eval-js(code) = if type(code) == str {
   cbor.decode(jogs-wasm.eval(bytes(code)))
 } else {
   cbor.decode(jogs-wasm.eval(bytes(code.text)))
 }
 
-#let compile-js(code) = if type(code) == "string" {
+#let compile-js(code) = if type(code) == str {
   jogs-wasm.compile(bytes(code))
 } else {
   jogs-wasm.compile(bytes(code.text))
