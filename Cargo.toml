@@ -8,10 +8,10 @@ license = "MIT"
 crate-type = ["cdylib"]
 [dependencies]
 anyhow = "1"
-ciborium = "0.2.1"
-quickjs-wasm-rs = "3.0.0"
+ciborium = "0.2.2"
+quickjs-wasm-rs = "3.1.0"
 serde = { version = "1", features = ["derive"] }
-serde_bytes = "0.11.12"
+serde_bytes = "0.11.15"
 wasm-minimal-protocol = { git = "https://github.com/astrale-sharp/wasm-minimal-protocol" }
 
 [profile.release]
