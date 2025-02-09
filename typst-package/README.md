@@ -128,3 +128,10 @@ A list of all global properties of the Javascript bytecode. The type is `array`.
 #let bytecode = compile-js("function sum(a, b) { return a + b; }")
 #let result = list-global-property(bytecode)
 ```
+## Build From Source
+
+To build this project from source, you would need the following tools:
+1. [wasm-pack](https://github.com/rustwasm/wasm-pack)
+2. `wasi-stub` from [wasm-minimal-protocol](https://github.com/astrale-sharp/wasm-minimal-protocol/)
+3. [cargo-about](https://github.com/EmbarkStudios/cargo-about)
+Once you've installed them, you can run `build.sh` script to build plugin.
