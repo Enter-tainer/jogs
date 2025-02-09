@@ -5,5 +5,6 @@ accepted = [
     "ISC",
     "Unlicense",
     "Unicode-DFS-2016",
-    "Apache-2.0 WITH LLVM-exception"
+    "Apache-2.0 WITH LLVM-exception",
+    "Unicode-3.0",
 ]
