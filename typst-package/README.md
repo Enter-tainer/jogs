@@ -5,7 +5,7 @@ Quickjs javascript runtime for typst. This package provides a typst plugin for e
 ## Example
 
 ````typst
-#import "@preview/jogs:0.2.3": *
+#import "@preview/jogs:0.2.4": *
 
 #set page(height: auto, width: auto, fill: black, margin: 1em)
 #set text(fill: white)
@@ -134,4 +134,19 @@ To build this project from source, you would need the following tools:
 1. [wasm-pack](https://github.com/rustwasm/wasm-pack)
 2. `wasi-stub` from [wasm-minimal-protocol](https://github.com/astrale-sharp/wasm-minimal-protocol/)
 3. [cargo-about](https://github.com/EmbarkStudios/cargo-about)
-Once you've installed them, you can run `build.sh` script to build plugin.
+Once you've installed them, you can run `install.sh` script to build plugin.
+
+Installing the `wasi-stub` tool might be confusing for those who aren't familiar with typst or rust toolchain. Here's the detail instruction on how to build it from source.
+
+1. Clone the `wasm-minimal-protocol` repo to your own computer, normally we just need the latest version of it, not the full history.
+```bash
+git clone https://github.com/astrale-sharp/wasm-minimal-protocol/ --depth=1
+```
+2. Enter the repo's sub-directory called `wasi-stub`, and build the tool using `cargo`.
+```bash
+cd wasm-minimal-protocol/wasi-stub
+cargo build
+# Better copy one to the project's root directory, so the build.sh script would detect it in build process.
+cp ../target/debug/wasi-stub ../.. 
+```
+3. (Optional) Safely delete the `wasm-minimal-protocol` repo, we wouldn't made any changes to it.

@@ -5,7 +5,7 @@ Quickjs javascript runtime for typst. This package provides a typst plugin for e
 ## Example
 
 ````typst
-#import "@preview/jogs:0.2.3": *
+#import "@preview/jogs:0.2.4": *
 
 #set page(height: auto, width: auto, fill: black, margin: 1em)
 #set text(fill: white)
